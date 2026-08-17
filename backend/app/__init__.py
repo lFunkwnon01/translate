@@ -1,0 +1,1 @@
+"""DocTranslate backend application package."""
