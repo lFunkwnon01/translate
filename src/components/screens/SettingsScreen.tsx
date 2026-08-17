@@ -2,17 +2,13 @@ import React, { useState } from 'react';
 import { 
   Sliders, 
   Languages, 
-  Key, 
   BookOpen, 
   Save, 
   Check, 
-  ShieldCheck, 
-  Sparkles, 
   Moon, 
   Sun, 
   Laptop,
-  CheckCircle2,
-  HardDrive
+  CheckCircle2
 } from 'lucide-react';
 import { UserSettings } from '../../types';
 import { LANGUAGES } from '../../data/mockData';
@@ -26,7 +22,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   settings,
   onSaveSettings,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'general' | 'translation' | 'api' | 'glossaries'>('general');
+  const [activeSubTab, setActiveSubTab] = useState<'general' | 'translation' | 'glossaries'>('general');
   const [formData, setFormData] = useState<UserSettings>({ ...settings });
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -46,7 +42,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           Settings
         </h1>
         <p className="text-xs text-slate-500 mt-1">
-          Manage your translation preferences, API limits, and application behavior.
+           Manage your translation preferences, glossaries, and application behavior.
         </p>
       </div>
 
@@ -77,18 +73,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           >
             <Languages className="w-4 h-4" />
             <span>Translation</span>
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('api')}
-            className={`w-full flex items-center space-x-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors text-left ${
-              activeSubTab === 'api'
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <Key className="w-4 h-4" />
-            <span>API & Limits</span>
           </button>
 
           <button
@@ -259,42 +243,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                     <p className="text-[11px] text-slate-400 mt-1">Pages below this score will trigger manual review flags.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tab: API & Limits */}
-            {activeSubTab === 'api' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100">
-                    FastAPI Endpoint & Quota
-                  </h3>
-                </div>
-
-                <div className="space-y-4 text-xs">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      FastAPI Backend Base URL
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.apiEndpoint}
-                      onChange={(e) => setFormData({ ...formData, apiEndpoint: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-[11px] text-slate-400 mt-1">Direct connection to the Python translation worker cluster.</p>
-                  </div>
-
-                  <div className="bg-blue-50/60 border border-blue-200 rounded-lg p-4 text-xs text-blue-900 space-y-2">
-                    <span className="font-bold flex items-center space-x-1.5">
-                      <ShieldCheck className="w-4 h-4 text-blue-600" />
-                      <span>Security & Zero-Retention Guarantee</span>
-                    </span>
-                    <p className="text-[11px] leading-relaxed text-blue-800">
-                      All OCI API keys and multimodal foundation tokens remain strictly protected on the backend. Files are transiently processed in isolated sandboxes.
-                    </p>
                   </div>
                 </div>
               </div>

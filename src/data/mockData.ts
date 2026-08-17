@@ -19,7 +19,6 @@ export const INITIAL_SETTINGS: UserSettings = {
   autoOcr: true,
   preserveLayout: true,
   defaultGlossary: 'Engineering Glossary V2',
-  apiEndpoint: 'https://api.doctranslate.internal/v1',
   confidenceThreshold: 85,
   enableNotifications: true,
 };

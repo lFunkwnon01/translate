@@ -230,7 +230,7 @@ export default function App() {
         {activeTab === 'register' && <RegisterScreen onSubmit={handleAuth} onSwitch={() => setActiveTab('login')} />}
         {activeTab === 'dashboard' && <DashboardScreen email={userEmail} jobs={jobs} onTranslate={openTranslation} onOpenJob={handleViewJob} onSignOut={handleSignOut} />}
         {activeTab === 'usage' && <UsageScreen />}
-        {activeTab === 'plan' && <PlanScreen onTranslate={openTranslation} />}
+        {activeTab === 'plan' && <PlanScreen />}
 
         {activeTab === 'progress' && (
           <ProgressScreen

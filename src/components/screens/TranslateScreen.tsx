@@ -122,7 +122,7 @@ export const TranslateScreen: React.FC<TranslateScreenProps> = ({
                 type="file" 
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept=".pdf,.docx,.pptx,.txt"
+                 accept=".pdf,application/pdf"
                 className="hidden" 
               />
 
@@ -140,8 +140,6 @@ export const TranslateScreen: React.FC<TranslateScreenProps> = ({
 
                 <div className="mt-4 flex items-center space-x-2">
                   <span className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 text-slate-600 rounded-md">.pdf</span>
-                  <span className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 text-slate-600 rounded-md">.docx</span>
-                  <span className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 text-slate-600 rounded-md">.pptx</span>
                 </div>
               </div>
 
@@ -202,7 +200,7 @@ export const TranslateScreen: React.FC<TranslateScreenProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => handleSelectPreset('Legal_Contract_Draft.docx', 1468006, 'de', 'en', 'recoverable_error')}
+                   onClick={() => handleSelectPreset('Legal_Contract_Draft.pdf', 1468006, 'de', 'en', 'recoverable_error')}
                   className={`text-xs px-2.5 py-1 rounded-md border font-medium transition-colors ${
                     scenarioMode === 'recoverable_error'
                       ? 'bg-indigo-600 text-white border-indigo-600'

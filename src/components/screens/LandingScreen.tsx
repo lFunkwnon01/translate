@@ -100,7 +100,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 Drag & drop your documents here
               </p>
               <p className="mt-1 text-xs text-slate-400">
-                Supports PDF, DOCX, PPTX up to 50MB
+                 Supports PDF up to 25 MiB
               </p>
             </div>
 
@@ -237,12 +237,12 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             </p>
           </div>
 
-          {/* Card 4: Enterprise Security */}
+            {/* Card 4: Private Processing */}
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs hover:border-blue-200 transition-colors">
             <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Enterprise Security</h3>
+             <h3 className="text-sm font-bold text-slate-900">Private Processing</h3>
             <p className="mt-2 text-xs text-slate-500 leading-relaxed">
               Local processing options, end-to-end encryption, and secure file handling for sensitive data.
             </p>
@@ -312,10 +312,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             onClick={onStartTranslating}
             className="inline-flex items-center justify-center px-7 py-3 text-sm font-semibold text-white bg-[#3538cd] hover:bg-[#2b2db5] rounded-lg transition-all shadow-md hover:shadow-lg"
           >
-            Start Free Trial
+             Create Free Account
           </button>
         </div>
-        <p className="text-xs text-slate-400 mt-2">No credit card required. 14-day full access.</p>
+         <p className="text-xs text-slate-400 mt-2">Free plan available. Premium features coming later.</p>
       </section>
 
     </div>

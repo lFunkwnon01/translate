@@ -96,7 +96,6 @@ export interface UserSettings {
   autoOcr: boolean;
   preserveLayout: boolean;
   defaultGlossary: string;
-  apiEndpoint: string;
   confidenceThreshold: number;
   enableNotifications: boolean;
 }
