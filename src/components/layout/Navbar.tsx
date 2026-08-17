@@ -1,5 +1,5 @@
 import React from 'react';
-import { Languages, ShieldCheck, History, Settings, FileText, Sparkles, Workflow } from 'lucide-react';
+import { Languages, History, Settings, Workflow, BarChart3, CreditCard } from 'lucide-react';
 import { ActiveTab } from '../../types';
 
 interface NavbarProps {
@@ -48,6 +48,26 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               Translate
+            </button>
+
+            <button
+              id="nav-usage-btn"
+              onClick={() => setActiveTab('usage')}
+              className={`px-3.5 py-2 text-sm font-medium transition-all relative ${
+                activeTab === 'usage' ? 'text-blue-600 font-semibold after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[2.5px] after:bg-blue-600 after:rounded-full' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <BarChart3 className="mr-1 inline h-3.5 w-3.5" /> Usage
+            </button>
+
+            <button
+              id="nav-plan-btn"
+              onClick={() => setActiveTab('plan')}
+              className={`px-3.5 py-2 text-sm font-medium transition-all relative ${
+                activeTab === 'plan' ? 'text-blue-600 font-semibold after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[2.5px] after:bg-blue-600 after:rounded-full' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <CreditCard className="mr-1 inline h-3.5 w-3.5" /> Plans
             </button>
 
             <button

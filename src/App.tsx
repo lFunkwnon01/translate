@@ -10,19 +10,17 @@ import { ProgressScreen } from './components/screens/ProgressScreen';
 import { PreviewScreen } from './components/screens/PreviewScreen';
 import { HistoryScreen } from './components/screens/HistoryScreen';
 import { SettingsScreen } from './components/screens/SettingsScreen';
-import { AuthModal } from './components/modals/AuthModal';
 import { FlowDiagramModal } from './components/modals/FlowDiagramModal';
+import { DashboardScreen, LoginScreen, PlanScreen, RegisterScreen, UsageScreen } from './components/screens/AccountScreens';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('translate');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [jobs, setJobs] = useState<TranslationJob[]>(MOCK_JOBS);
   const [currentJob, setCurrentJob] = useState<TranslationJob>(MOCK_JOBS[0]);
   const [settings, setSettings] = useState<UserSettings>(INITIAL_SETTINGS);
   
-  // Modals
-  const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isFlowsOpen, setIsFlowsOpen] = useState<boolean>(false);
-  const [userEmail, setUserEmail] = useState<string>('lead.architect@company.com');
+  const [userEmail, setUserEmail] = useState<string>('');
 
   // Simulator instance ref
   const simulatorRef = useRef<JobSimulator | null>(null);
@@ -73,6 +71,16 @@ export default function App() {
 
     simulatorRef.current = simulator;
     simulator.start();
+  };
+
+  const openTranslation = () => setActiveTab(userEmail ? 'translate' : 'login');
+  const handleAuth = (email: string) => {
+    setUserEmail(email);
+    setActiveTab('dashboard');
+  };
+  const handleSignOut = () => {
+    setUserEmail('');
+    setActiveTab('home');
   };
 
   const handleCancelCurrentJob = () => {
@@ -192,7 +200,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenFlows={() => setIsFlowsOpen(true)}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => setActiveTab(userEmail ? 'dashboard' : 'login')}
         userEmail={userEmail}
       />
 
@@ -200,7 +208,7 @@ export default function App() {
       <main className="flex-1">
         {activeTab === 'home' && (
           <LandingScreen
-            onStartTranslating={() => setActiveTab('translate')}
+            onStartTranslating={openTranslation}
             onSelectSampleJob={(jobId) => {
               const target = jobs.find((j) => j.id === jobId) || jobs[0];
               handleViewJob(target);
@@ -217,6 +225,12 @@ export default function App() {
             onViewAllHistory={() => setActiveTab('history')}
           />
         )}
+
+        {activeTab === 'login' && <LoginScreen onSubmit={handleAuth} onSwitch={() => setActiveTab('register')} />}
+        {activeTab === 'register' && <RegisterScreen onSubmit={handleAuth} onSwitch={() => setActiveTab('login')} />}
+        {activeTab === 'dashboard' && <DashboardScreen email={userEmail} jobs={jobs} onTranslate={openTranslation} onOpenJob={handleViewJob} onSignOut={handleSignOut} />}
+        {activeTab === 'usage' && <UsageScreen />}
+        {activeTab === 'plan' && <PlanScreen onTranslate={openTranslation} />}
 
         {activeTab === 'progress' && (
           <ProgressScreen
@@ -254,14 +268,6 @@ export default function App() {
 
       {/* Footer */}
       <Footer onOpenDocModal={() => setIsFlowsOpen(true)} />
-
-      {/* Modals */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        userEmail={userEmail}
-        setUserEmail={setUserEmail}
-      />
 
       <FlowDiagramModal
         isOpen={isFlowsOpen}

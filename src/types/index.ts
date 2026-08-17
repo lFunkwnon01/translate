@@ -87,7 +87,7 @@ export interface LanguageOption {
   flag?: string;
 }
 
-export type ActiveTab = 'home' | 'translate' | 'progress' | 'preview' | 'history' | 'settings';
+export type ActiveTab = 'home' | 'login' | 'register' | 'dashboard' | 'translate' | 'progress' | 'preview' | 'history' | 'usage' | 'plan' | 'settings';
 
 export interface UserSettings {
   interfaceLanguage: string;
