@@ -51,4 +51,17 @@ label { color: var(--muted); display: grid; font-size: 13px; gap: 7px; }.field {
 .preview { margin-top: 18px; }
 .preview-page { border-top: 1px solid var(--line); padding-top: 16px; }
 .preview-page p { line-height: 1.5; margin: 6px 0 0; }
-@media (max-width: 760px) { .nav { align-items: flex-start; flex-direction: column; gap: 14px; }.navlinks { gap: 12px; }.hero, .grid, .grid.two, .job-columns { grid-template-columns: 1fr; }.container { padding: 38px 18px; } h1 { font-size: 48px; }.hero-card { transform: none; }.row { align-items: flex-start; flex-direction: column; }.row .tag { align-self: flex-start; }.actions .btn { flex: 1 1 100%; }.dropzone { padding: 28px 16px; } }
+.toggle-row { align-items: center; cursor: pointer; display: flex; gap: 8px; font-size: 14px; }
+.ocr-warning { margin-bottom: 18px; }
+.ocr-pages { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.ocr-page-item { align-items: center; display: flex; gap: 8px; font-size: 13px; }
+.ocr-conf-badge { border-radius: 6px; font-size: 12px; font-weight: 700; padding: 2px 8px; }
+.btn-sm { font-size: 12px; padding: 6px 12px; }
+.preview-controls { margin: 12px 0; }
+.preview-nav, .zoom-controls { align-items: center; display: flex; gap: 4px; }
+.preview-side-by-side { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; margin: 12px 0; }
+.preview-col { min-height: 200px; }
+.preview-text-block { background: #f8f9fa; border: 1px solid var(--line); border-radius: 8px; line-height: 1.6; padding: 14px; }
+.ocr-page-warning { background: #fff4e8; border: 1px solid #f2d2ad; border-radius: 8px; color: #8b4d1e; margin-top: 12px; padding: 10px 14px; }
+.preview-blocks, .preview-tables { margin-top: 12px; }
+@media (max-width: 760px) { .nav { align-items: flex-start; flex-direction: column; gap: 14px; }.navlinks { gap: 12px; }.hero, .grid, .grid.two, .job-columns { grid-template-columns: 1fr; }.container { padding: 38px 18px; } h1 { font-size: 48px; }.hero-card { transform: none; }.row { align-items: flex-start; flex-direction: column; }.row .tag { align-self: flex-start; }.actions .btn { flex: 1 1 100%; }.dropzone { padding: 28px 16px; }.preview-side-by-side { grid-template-columns: 1fr; } }
