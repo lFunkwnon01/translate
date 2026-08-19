@@ -1,4 +1,6 @@
 from collections.abc import Iterator
+from dataclasses import dataclass
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -15,6 +17,33 @@ VALID_PDF = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n"
 CORRUPT_PDF = b"%PDF-1.4\nnot-a-complete-pdf\n"
 
 
+class FakeAIProviderError(RuntimeError):
+    def __init__(self, code: str):
+        super().__init__(code)
+        self.code = code
+
+
+@dataclass(frozen=True)
+class FakeAIResult:
+    artifact: bytes
+    ocr_warning: str | None = None
+
+
+class FakeAIProvider:
+    """Deterministic provider double for contract tests; it never calls a network."""
+
+    def __init__(self, error: str | None = None):
+        self.error = error
+        self.calls: list[tuple[str, str, str]] = []
+
+    def translate(self, content: bytes, source: str, target: str) -> FakeAIResult:
+        self.calls.append((sha256(content).hexdigest(), source, target))
+        if self.error:
+            raise FakeAIProviderError(self.error)
+        digest = sha256(content + b"\0" + source.encode() + b"\0" + target.encode()).hexdigest()
+        return FakeAIResult(artifact=f"%PDF-1.4\n% fake-ai:{digest}\n%%EOF\n".encode())
+
+
 @pytest.fixture()
 def owner_key() -> str:
     return "test-owner"
@@ -28,6 +57,16 @@ def valid_pdf() -> bytes:
 @pytest.fixture()
 def corrupt_pdf() -> bytes:
     return CORRUPT_PDF
+
+
+@pytest.fixture()
+def fake_ai_provider() -> FakeAIProvider:
+    return FakeAIProvider()
+
+
+@pytest.fixture()
+def fake_ai_provider_factory():
+    return FakeAIProvider
 
 
 @pytest.fixture()
