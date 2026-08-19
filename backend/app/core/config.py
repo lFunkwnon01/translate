@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     oracle_endpoint: str = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
     oracle_model_id: str = "ocid1.generativeaimodel.oc1.us-chicago-1.amaaaaaask7dceyapnibwg42qjhwaxrlqfpreueirtwghiwvv2whsnwmnlva"
     oracle_compartment_id: str | None = None
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     model_config = SettingsConfigDict(
         env_file=".env",

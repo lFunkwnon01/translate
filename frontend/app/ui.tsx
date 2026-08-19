@@ -3,11 +3,10 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { JobEvent, JobResource } from "../lib/api";
+import { cancelJob, getArtifact, getJob, uploadDocument } from "../lib/api";
 import type { JobWarning } from "../lib/types";
 import { demoJob, jobs } from "../lib/mockData";
-import { createProgressMock, downloadMock, getJobMock, getPreviewMock, getWarningsMock, uploadMock } from "../lib/mockService";
 import { OcrWarning } from "./components/OcrWarning";
-import { DocumentPreview } from "./components/DocumentPreview";
 
 function Nav() {
   return (
@@ -38,10 +37,14 @@ function Layout({ children }: { children: React.ReactNode }) {
 const statusLabel: Record<JobResource["status"], string> = {
   queued: "Queued",
   extracting: "Extracting",
+  ocr_processing: "OCR processing",
   translating: "Translating",
+  rebuilding: "Rebuilding PDF",
+  validating: "Validating PDF",
   completed: "Completed",
   failed: "Failed",
   cancelled: "Cancelled",
+  cancellation_requested: "Cancelling",
 };
 const terminalStatuses: JobResource["status"][] = ["completed", "failed", "cancelled"];
 
@@ -170,7 +173,7 @@ export function Translate() {
     setBusy(true);
     setError("");
     try {
-      const result = await uploadMock(file, source, target, { ocr, preserveLayout });
+      const result = await uploadDocument(file, source, target);
       router.push(`/jobs/${result.job.job_id}`);
     } catch (err) {
       setError(`Upload failed: ${String(err).replace("Error: ", "")}. Try a PDF under 25 MiB.`);
@@ -210,41 +213,9 @@ export function Translate() {
   );
 }
 
-function ExtractionSummary({ preview }: { preview: Awaited<ReturnType<typeof getPreviewMock>> }) {
-  return (
-    <div className="extraction-grid">
-      <div>
-        <span className="muted small">Extraction result</span>
-        <strong>{preview.extraction.status === "complete" ? "Ready" : "Partial"}</strong>
-        <span className="muted small">{preview.extraction.document_type} · {preview.extraction.page_count} pages</span>
-      </div>
-      <div>
-        <span className="muted small">Detected structure</span>
-        <strong>{preview.extraction.blocks} blocks</strong>
-        <span className="muted small">{preview.extraction.tables} table</span>
-      </div>
-    </div>
-  );
-}
-
-function LegacyDocumentPreview({ preview }: { preview: Awaited<ReturnType<typeof getPreviewMock>> }) {
-  return (
-    <DocumentPreview
-      pages={preview.pages}
-      warnings={preview.warnings}
-      extractionStatus={preview.extraction.status}
-      documentType={preview.extraction.document_type}
-      pageCount={preview.extraction.page_count}
-      blockCount={preview.extraction.blocks}
-      tableCount={preview.extraction.tables}
-    />
-  );
-}
-
 export function JobDetail({ id }: { id: string }) {
-  const [job, setJob] = useState<JobResource | null>(id === demoJob.job_id ? demoJob : null);
+  const [job, setJob] = useState<JobResource | null>(null);
   const [error, setError] = useState(false);
-  const [preview, setPreview] = useState<Awaited<ReturnType<typeof getPreviewMock>> | null>(null);
   const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
   const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle");
   const [events, setEvents] = useState<JobEvent[]>([]);
@@ -253,21 +224,28 @@ export function JobDetail({ id }: { id: string }) {
 
   useEffect(() => {
     let active = true;
-    getJobMock(id).then((v) => active && setJob(v)).catch(() => active && setError(true));
+    getJob(id).then((v) => active && setJob(v)).catch(() => active && setError(true));
     return () => { active = false; };
   }, [id]);
 
   useEffect(() => {
     if (!job || terminalStatuses.includes(job.status)) return;
-    const stop = createProgressMock(job, setJob, (event) => setEvents((current) => [...current, event]));
-    cancelRef.current = stop;
-    return () => { cancelRef.current = null; stop(); };
+    let active = true;
+    const poll = async () => {
+      try {
+        const next = await getJob(job.job_id);
+        if (active) setJob(next);
+      } catch { if (active) setError(true); }
+    };
+    const timer = window.setInterval(poll, 1500);
+    cancelRef.current = () => window.clearInterval(timer);
+    return () => { active = false; window.clearInterval(timer); };
   }, [job?.job_id]);
 
   useEffect(() => {
     if (!job) return;
     let active = true;
-    getWarningsMock(job.job_id).then((w) => active && setWarnings(w)).catch(() => {});
+    setWarnings([]);
     return () => { active = false; };
   }, [job?.job_id]);
 
@@ -278,14 +256,17 @@ export function JobDetail({ id }: { id: string }) {
 
   const showPreview = async () => {
     setPreviewState("loading");
-    try { setPreview(await getPreviewMock(job.job_id)); setPreviewState("idle"); }
-    catch { setPreviewState("error"); }
+    try {
+      const blob = await getArtifact(job.job_id, "preview");
+      window.open(URL.createObjectURL(blob), "_blank", "noopener,noreferrer");
+      setPreviewState("idle");
+    } catch { setPreviewState("error"); }
   };
 
   const download = async () => {
     setDownloadState("loading");
     try {
-      const blob = await downloadMock(job.job_id);
+      const blob = await getArtifact(job.job_id, "download");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -337,7 +318,7 @@ export function JobDetail({ id }: { id: string }) {
           {job.status === "cancelled" && <div className="warning">This job was cancelled. Start a new translation to try again.</div>}
           {job.status === "failed" && <div className="error">Translation failed. Please review the document and try again.</div>}
           <div className="actions">
-            <button className="btn secondary" onClick={() => cancelRef.current?.()} disabled={isDone || terminalStatuses.includes(job.status)}>Cancel job</button>
+            <button className="btn secondary" onClick={async () => { await cancelJob(job.job_id); setJob(await getJob(job.job_id)); }} disabled={isDone || terminalStatuses.includes(job.status)}>Cancel job</button>
             <button className="btn secondary" onClick={showPreview} disabled={!isDone || previewState === "loading"}>{previewState === "loading" ? "Loading preview..." : "Open document preview"}</button>
             <button className="btn" onClick={download} disabled={!isDone || downloadState === "loading"}>{downloadState === "loading" ? "Preparing download..." : "Download PDF"}</button>
           </div>
@@ -365,7 +346,6 @@ export function JobDetail({ id }: { id: string }) {
           </div>
         </section>
 
-        {preview && <LegacyDocumentPreview preview={preview} />}
       </main>
     </Layout>
   );
