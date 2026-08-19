@@ -58,14 +58,17 @@ def _make_simple_pdf(tmp_path: Path) -> Path:
 
 
 def _make_scanned_pdf(tmp_path: Path) -> Path:
-    from fpdf import FPDF
+    import fitz
 
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Helvetica", size=12)
-    pdf.cell(text="Visible text rendered as path, no selectable text layer")
+    doc = fitz.open()
+    page = doc.new_page(width=612, height=792)
+    shape = page.new_shape()
+    shape.draw_rect(fitz.Rect(50, 50, 562, 742))
+    shape.finish(color=(0, 0, 0), fill=(0.9, 0.9, 0.9), width=1)
+    shape.commit()
     path = tmp_path / "scanned.pdf"
-    pdf.output(str(path))
+    doc.save(str(path))
+    doc.close()
     return path
 
 

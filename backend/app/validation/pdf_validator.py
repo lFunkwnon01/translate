@@ -9,7 +9,15 @@ def validate_pdf(path: str) -> dict[str, object]:
     errors: list[str] = []
     page_count = 0
 
-    raw = Path(path).read_bytes()
+    p = Path(path)
+    if not p.exists():
+        return {"valid": False, "page_count": 0, "errors": ["FILE_NOT_FOUND: file does not exist"]}
+
+    try:
+        raw = p.read_bytes()
+    except (OSError, ValueError) as exc:
+        return {"valid": False, "page_count": 0, "errors": [f"FILE_READ_ERROR: {exc}"]}
+
     if not raw.startswith(b"%PDF"):
         errors.append("PDF_MISSING_MAGIC: file does not start with %PDF-")
     if not raw.rstrip().endswith(b"%%EOF"):
@@ -19,7 +27,7 @@ def validate_pdf(path: str) -> dict[str, object]:
         doc = fitz.open(path)
         page_count = len(doc)
         doc.close()
-    except (ValueError, OSError) as exc:
+    except (ValueError, OSError, RuntimeError) as exc:
         errors.append(f"PDF_CANNOT_OPEN: {exc}")
 
     return {"valid": len(errors) == 0, "page_count": page_count, "errors": errors}

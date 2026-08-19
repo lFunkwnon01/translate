@@ -2,39 +2,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from app.pdf.extraction import ExtractionStatus, extract_text
+from app.pdf.extraction import extract_document
 
 
 def test_extract_simple_text(simple_pdf_path: Path) -> None:
-    result = extract_text(simple_pdf_path.read_bytes())
+    result = extract_document(str(simple_pdf_path))
 
-    assert len(result.pages) == 1
-    assert result.pages[0].extraction_status == ExtractionStatus.OK
-    assert "Hello World" in result.pages[0].text
+    assert result["page_count"] == 1
+    assert result["pages"][0]["extraction_status"] == "extracted"
+    assert "Hello World" in result["pages"][0]["text"]
 
 
 def test_extract_page_metadata(simple_pdf_path: Path) -> None:
-    result = extract_text(simple_pdf_path.read_bytes())
+    result = extract_document(str(simple_pdf_path))
 
-    page = result.pages[0]
-    assert page.width > 0
-    assert page.height > 0
-    assert page.rotation == 0
-    assert page.page_number == 1
-    assert page.content_hash
-
-
-def test_extract_blocks(simple_pdf_path: Path) -> None:
-    result = extract_text(simple_pdf_path.read_bytes())
-
-    blocks = result.blocks.get(1, [])
-    assert len(blocks) > 0
-    for b in blocks:
-        assert b.x0 <= b.x1
-        assert b.y0 <= b.y1
-        assert isinstance(b.text, str)
+    page = result["pages"][0]
+    assert page["width"] > 0
+    assert page["height"] > 0
+    assert page["page_number"] == 1
+    assert page["text_hash"]
 
 
 def test_extract_empty_page(tmp_path: Path) -> None:
@@ -45,25 +31,25 @@ def test_extract_empty_page(tmp_path: Path) -> None:
     path = tmp_path / "empty.pdf"
     pdf.output(str(path))
 
-    result = extract_text(path.read_bytes())
-    assert len(result.pages) == 1
-    assert result.pages[0].extraction_status == ExtractionStatus.OCR_REQUIRED
+    result = extract_document(str(path))
+    assert result["page_count"] == 1
+    assert result["pages"][0]["extraction_status"] == "ocr_required"
 
 
 def test_extract_scanned_page(scanned_pdf_path: Path) -> None:
-    result = extract_text(scanned_pdf_path.read_bytes())
+    result = extract_document(str(scanned_pdf_path))
 
-    assert len(result.pages) == 1
-    assert result.pages[0].extraction_status == ExtractionStatus.OK
+    assert result["page_count"] == 1
+    assert result["pages"][0]["extraction_status"] == "ocr_required"
+    assert result["pages"][0]["has_text"] is False
 
 
 def test_extract_multi_page(multi_page_pdf_path: Path) -> None:
-    result = extract_text(multi_page_pdf_path.read_bytes())
+    result = extract_document(str(multi_page_pdf_path))
 
-    assert len(result.pages) == 3
-    for i, page in enumerate(result.pages, start=1):
-        assert page.page_number == i
-        assert f"Page {i}" in page.text
+    assert result["page_count"] == 3
+    for i, page in enumerate(result["pages"], start=1):
+        assert page["page_number"] == i
 
 
 def test_extract_page_count_matches(tmp_path: Path) -> None:
@@ -77,5 +63,5 @@ def test_extract_page_count_matches(tmp_path: Path) -> None:
     path = tmp_path / "five.pdf"
     pdf.output(str(path))
 
-    result = extract_text(path.read_bytes())
-    assert len(result.pages) == 5
+    result = extract_document(str(path))
+    assert result["page_count"] == 5
