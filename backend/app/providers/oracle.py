@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-import oci
+from typing import cast
+
+import oci  # type: ignore[import-untyped]
 
 from app.providers.ai import AIProviderError
 
@@ -32,13 +34,32 @@ class OracleAIProvider:
         )
 
     def translate(self, source: bytes, source_language: str, target_language: str) -> bytes:
-        text = source.decode("utf-8", errors="replace")
+        return self.translate_segment(source.decode("utf-8", errors="replace"), {}, source_language, target_language).encode("utf-8")
+
+    def translate_segment(
+        self,
+        text: str,
+        context: dict[str, object],
+        source_language: str,
+        target_language: str,
+    ) -> str:
+        before = "\n".join(cast(list[str], context.get("before", [])))
+        after = "\n".join(cast(list[str], context.get("after", [])))
+        retrieved = "\n".join(cast(list[str], context.get("retrieved", [])))
+        glossary_value = context.get("glossary", {})
+        glossary = "\n".join(
+            f"- {key}: {value}" for key, value in cast(dict[str, str], glossary_value).items()
+        ) if isinstance(glossary_value, dict) else ""
 
         prompt = (
-            f"You are a professional translator for a scanlation group. "
-            f"Translate the following text from {source_language} to {target_language}. "
-            f"Preserve all formatting, line breaks, and special characters. "
-            f"Only return the translated text, nothing else.\n\n"
+            "You are a professional PDF translator for a scanlation group. "
+            f"Translate from {source_language} to {target_language}.\n"
+            "Preserve line breaks, placeholders, punctuation, sound effects, and tone. "
+            "Use the context and glossary for consistency. Return only the translation.\n\n"
+            f"Previous context:\n{before}\n\n"
+            f"Relevant retrieved context:\n{retrieved}\n\n"
+            f"Glossary:\n{glossary}\n\n"
+            f"Next context:\n{after}\n\n"
             f"{text}"
         )
 
@@ -59,7 +80,7 @@ class OracleAIProvider:
 
             response = self._client.chat(chat_detail)
             translated_text = response.data.chat_response.text
-            return translated_text.encode("utf-8")
+            return translated_text
 
         except oci.exceptions.ServiceError as e:
             raise AIProviderError(f"Oracle AI error: {e.message}") from e

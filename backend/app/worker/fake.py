@@ -14,8 +14,11 @@ from app.models import DocumentBlock, DocumentPage, JobOutboxMessage, Translatio
 from app.pdf.extraction import extract_document, extract_page_blocks, extract_page_text
 from app.pdf.ocr import is_ocr_available
 from app.pdf.reconstruction import reconstruct_pdf
+from app.pdf.segmentation import create_segments
 from app.providers.ai import AIProvider, AIProviderError, FakeAIProvider
 from app.storage.local import LocalStorage
+from app.translation.context import ContextManager
+from app.translation.rag import LocalRAG
 
 FAKE_ARTIFACT = FakeAIProvider().translate(b"", "auto", "")
 
@@ -169,10 +172,28 @@ class FakeWorker:
         db.commit()
 
         try:
-            source = Path(job.document.storage_path).read_bytes() if job.document else b""
-            artifact_bytes = self.provider.translate(
-                source, job.source_language_code, job.target_language_code
+            segments = create_segments(
+                job.id,
+                all_blocks,
+                owner_key=job.owner_key,
+                document_id=job.document.id if job.document else "",
             )
+            context_manager = ContextManager()
+            rag = LocalRAG()
+            source_segments = [str(segment["text"]) for segment in segments]
+            translated_segments = []
+            for index, segment in enumerate(segments):
+                source_text = str(segment["text"])
+                context = context_manager.build(index, source_segments, rag.search(source_text))
+                translated_text = self.provider.translate_segment(
+                    source_text,
+                    context,
+                    job.source_language_code,
+                    job.target_language_code,
+                )
+                context_manager.remember(source_text, translated_text)
+                rag.add(translated_text)
+                translated_segments.append({**segment, "text": translated_text})
         except (AIProviderError, OSError) as exc:
             job.status = "failed"
             job.current_step = "failed"
@@ -192,16 +213,8 @@ class FakeWorker:
         record_event(db, job, "job.progress")
         db.commit()
 
-        translated_segments: list[dict[str, Any]] = []
         output_path = ""
         if job.document:
-            translated_segments = [
-                {
-                    "page_number": page_info["page_number"],
-                    "text": f"translated-{hashlib.sha256(b'').hexdigest()[:8]}",
-                }
-                for page_info in doc_result["pages"]
-            ]
             output_path = str(Path(job.document.storage_path).parent / "reconstructed.pdf")
             reconstruct_pdf(job.document.storage_path, translated_segments, output_path)
 
@@ -233,6 +246,15 @@ class FakeWorker:
                 db.commit()
                 return job
 
+        artifact_bytes = (
+            self.provider.translate(
+                Path(job.document.storage_path).read_bytes() if job.document else b"",
+                job.source_language_code,
+                job.target_language_code,
+            )
+            if isinstance(self.provider, FakeAIProvider)
+            else Path(output_path).read_bytes() if output_path else b""
+        )
         artifact = self.storage.save_artifact(job.owner_key, job.id, artifact_bytes)
         job.artifact_path = artifact
         job.status = "completed"

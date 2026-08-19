@@ -15,6 +15,15 @@ class AIProvider(Protocol):
     def translate(self, source: bytes, source_language: str, target_language: str) -> bytes:
         ...
 
+    def translate_segment(
+        self,
+        text: str,
+        context: dict[str, object],
+        source_language: str,
+        target_language: str,
+    ) -> str:
+        ...
+
 
 @dataclass(frozen=True)
 class FakeAIProvider:
@@ -28,6 +37,11 @@ class FakeAIProvider:
         if self.fail or self.fail_on == "translate":
             raise AIProviderError(self.error_message)
         return b"%PDF-1.4\n% Fake translated artifact\n1 0 obj\n<<>>\nendobj\n%%EOF\n"
+
+    def translate_segment(self, text: str, context: dict[str, object], source_language: str, target_language: str) -> str:
+        if self.fail or self.fail_on == "translate":
+            raise AIProviderError(self.error_message)
+        return f"[translated {source_language}->{target_language}] {text}"
 
 
 def create_provider(settings: Settings) -> AIProvider:
