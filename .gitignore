@@ -13,3 +13,6 @@ backend/.ruff_cache/
 backend/**/__pycache__/
 backend/data/
 backend/storage/
+backend/.coverage
+backend/coverage.xml
+backend/htmlcov/

@@ -12,24 +12,23 @@ routes.
 | --- | --- | --- |
 | TP-01 | `GET /health` status, payload and timestamp contract | Covered |
 | TP-02 | Document upload, owner persistence and isolated storage | Covered |
-| TP-03 | Upload MIME, PDF signature and size validation | Covered |
+| TP-03 | Upload MIME, valid/corrupt/non-PDF and 25 MiB validation | Covered |
 | TP-04 | Job creation and outbox message | Covered |
-| TP-05 | Job status | Covered through `FakeWorker` state transition |
-| TP-06 | Job progress stream | Pending endpoint implementation |
-| TP-07 | Translation configuration | Pending endpoint implementation |
-| TP-08 | OCR warning behavior | Pending endpoint implementation |
-| TP-09 | Preview retrieval | Pending endpoint implementation |
-| TP-10 | Translated document download | Pending endpoint implementation |
-| TP-11 | Job deletion | Pending endpoint implementation |
-| TP-12 | Error response contract | Pending endpoint implementation |
-| TP-13 | Persistence, outbox and deterministic FakeWorker artifact | Covered |
+| TP-05 | `GET /api/jobs/{job_id}` queued status and 404 | Covered |
+| TP-06 | Job progress stream | Blocked: endpoint absent (strict xfail) |
+| TP-07 | Translation configuration | Covered only by upload language validation; no separate endpoint |
+| TP-08 | OCR warning behavior | Blocked: OCR/provider absent (strict xfail) |
+| TP-09 | Preview retrieval | Blocked: endpoint absent (strict xfail) |
+| TP-10 | Translated document download | Blocked: endpoint absent (strict xfail) |
+| TP-11 | Job deletion/cancellation | Blocked: endpoint absent (strict xfail) |
+| TP-12 | Error response contract for implemented routes | Covered: 400/404/413/415/422/409 |
+| TP-13 | Persistence, outbox and deterministic FakeWorker artifact | Covered, including 0600 artifact and no-op queue |
 
-The different-payload reuse of an `Idempotency-Key` is retained as a strict
-`xfail`: the current endpoint replays the existing response and does not yet
-return the expected conflict response.
+FakeAI/timeout behavior is also an explicit strict `xfail` because no provider
+integration exists in this backend slice. The test suite never calls OCI/OCR.
 
 Run from `backend/`:
 
 ```bash
-pytest
+pytest --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml --cov-report=html:htmlcov
 ```
