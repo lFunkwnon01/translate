@@ -48,7 +48,7 @@ def request_hash(content: bytes, source_language_code: str, target_language_code
 async def upload_document(
     request: Request,
     file: Annotated[UploadFile, File()],
-    target_language_code: Annotated[str, Form()],
+    target_language_code: Annotated[str | None, Form()] = None,
     source_language_code: Annotated[str, Form()] = "auto",
     db: Session = Depends(get_db),  # noqa: B008
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
@@ -64,7 +64,7 @@ async def upload_document(
         raise api_error("UNSUPPORTED_FILE", "Solo se aceptan archivos PDF.", 415)
     if source_language_code != "auto" and source_language_code not in SUPPORTED_LANGUAGES:
         raise api_error("UNSUPPORTED_LANGUAGE", "Idioma fuente no soportado.", 422)
-    if target_language_code not in SUPPORTED_LANGUAGES:
+    if target_language_code is None or target_language_code not in SUPPORTED_LANGUAGES:
         raise api_error("UNSUPPORTED_LANGUAGE", "Idioma destino no soportado.", 422)
 
     content = await file.read(settings.max_file_size_bytes + 1)
