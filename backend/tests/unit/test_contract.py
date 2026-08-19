@@ -138,8 +138,6 @@ def test_worker_artifact_is_private_and_has_expected_hash(
     ).status == "published"
 
 
-@pytest.mark.blocked
-@pytest.mark.xfail(strict=True, reason="TP-06 bloqueado: no existe endpoint de stream")
 def test_tp06_job_progress_stream_is_not_implemented(client: TestClient, valid_pdf: bytes) -> None:
     job_id = upload(client, valid_pdf, key="stream-contract").json()["job"]["job_id"]
     assert client.get(f"/api/jobs/{job_id}/stream").status_code == 200
@@ -166,8 +164,6 @@ def test_tp10_download_is_not_implemented(client: TestClient, valid_pdf: bytes) 
     assert client.get(f"/api/jobs/{job_id}/download").status_code == 200
 
 
-@pytest.mark.blocked
-@pytest.mark.xfail(strict=True, reason="TP-11 bloqueado: no existe endpoint de cancelación/borrado")
 def test_tp11_cancel_or_delete_is_not_implemented(client: TestClient, valid_pdf: bytes) -> None:
     job_id = upload(client, valid_pdf, key="delete-contract").json()["job"]["job_id"]
     assert client.delete(f"/api/jobs/{job_id}").status_code == 204
