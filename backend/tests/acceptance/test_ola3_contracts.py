@@ -56,7 +56,6 @@ def test_tp06_status_has_checkpoint_progress_contract(client: TestClient, valid_
     assert 0 <= body["progress_percent"] <= 100
 
 
-@pytest.mark.xfail(strict=True, reason="TP-08 bloqueado: capability OCR/provider no está implementada")
 def test_tp08_provider_warning_is_exposed_in_status(client: TestClient, valid_pdf: bytes) -> None:
     identifier = job_id(client, valid_pdf, "tp08-ocr")
     response = client.get(f"/api/jobs/{identifier}")

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.jobs.events import record_event
-from app.models import JobEvent, TranslationJob
+from app.models import DocumentPage, JobEvent, TranslationJob
 from app.storage.local import LocalStorage
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -30,7 +30,33 @@ def _links(job: TranslationJob) -> dict[str, str | None]:
     }
 
 
-def _status(job: TranslationJob) -> dict[str, object]:
+def _ocr_warnings(job: TranslationJob, db: Session) -> list[dict[str, object]]:
+    if not job.document_id:
+        return []
+    pages = db.scalars(
+        select(DocumentPage).where(DocumentPage.document_id == job.document_id).order_by(DocumentPage.page_number)
+    ).all()
+    warnings: list[dict[str, object]] = []
+    for page in pages:
+        if page.ocr_used:
+            warnings.append({
+                "code": "OCR_USED",
+                "page_number": page.page_number,
+                "message": f"OCR applied on page {page.page_number}",
+                "confidence": page.ocr_confidence,
+            })
+        elif page.ocr_confidence is not None and page.ocr_confidence < 0.5:
+            warnings.append({
+                "code": "OCR_LOW_CONFIDENCE",
+                "page_number": page.page_number,
+                "message": f"Low OCR confidence on page {page.page_number}",
+                "confidence": page.ocr_confidence,
+            })
+    return warnings
+
+
+def _status(job: TranslationJob, db: Session | None = None) -> dict[str, object]:
+    ocr_warning = _ocr_warnings(job, db) if db is not None else None
     return {
         "job_id": job.id,
         "document_id": job.document_id,
@@ -44,6 +70,7 @@ def _status(job: TranslationJob) -> dict[str, object]:
         "requested_at": job.requested_at,
         "started_at": job.started_at,
         "finished_at": job.finished_at,
+        "ocr_warning": ocr_warning,
         "links": _links(job),
     }
 
@@ -64,7 +91,7 @@ def _artifact(request: Request, job: TranslationJob):
 
 @router.get("/{job_id}")
 def get_job(job_id: str, request: Request, db: Session = Depends(get_db)) -> dict[str, object]:  # noqa: B008
-    return _status(_job(job_id, request, db))
+    return _status(_job(job_id, request, db), db)
 
 
 @router.get("/{job_id}/events")
@@ -103,7 +130,7 @@ def cancel_job(job_id: str, request: Request, db: Session = Depends(get_db)) -> 
 @router.post("/{job_id}/cancel")
 def cancel_job_json(job_id: str, request: Request, db: Session = Depends(get_db)) -> dict[str, object]:  # noqa: B008
     cancel_job(job_id, request, db)
-    return _status(_job(job_id, request, db))
+    return _status(_job(job_id, request, db), db)
 
 
 @router.get("/{job_id}/preview")
