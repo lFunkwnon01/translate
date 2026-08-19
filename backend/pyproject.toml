@@ -32,6 +32,9 @@ dev = [
   "pytesseract==0.3.13",
 ]
 
+[project.scripts]
+doctranslate-worker = "app.worker.runtime:main"
+
 [tool.setuptools.packages.find]
 include = ["app*"]
 
