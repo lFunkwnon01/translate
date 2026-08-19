@@ -1,7 +1,6 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
-
 
 router = APIRouter(tags=["health"])
 
@@ -18,5 +17,5 @@ def health() -> dict[str, object]:
             "queue": "not_checked",
             "ai_provider": "not_configured",
         },
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }

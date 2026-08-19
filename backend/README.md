@@ -21,6 +21,16 @@ curl http://localhost:8000/health
 curl http://localhost:8000/api/v1/health
 ```
 
-`/health` remains available for existing probes. New API routes should be added under `/api/v1`.
+`/health` remains available for existing probes. The canonical API route is `/api/...`; `/api/v1/...` is a temporary versioned alias for compatibility and should not be used for new route references.
 
-The current scaffold implements only the application entry point and health endpoint. Upload, OCR, PDF processing, database persistence, worker execution and OCI integration are intentionally added in later vertical slices.
+## Ola 2 backend foundation
+
+The local MVP now persists `documents`, `translation_jobs` and `job_outbox_messages` in SQLite. Run the initial migration with:
+
+```bash
+alembic upgrade head
+```
+
+`POST /api/documents/upload` requires `Idempotency-Key`, accepts only PDF files up to 25 MiB, and stores files beneath a permission-restricted `STORAGE_ROOT` partitioned by installation owner and UUID. The configured `OWNER_KEY` is local installation identity; it is never accepted from request bodies.
+
+The `FakeWorker` in `app.worker.fake` consumes one pending outbox message and writes a deterministic test artifact. It does not call OCI, perform OCR/RAG, or expose public authentication. The real provider integration remains outside this slice.
