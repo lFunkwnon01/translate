@@ -150,17 +150,15 @@ def test_tp08_ocr_warning_is_not_implemented(client: TestClient, valid_pdf: byte
     assert client.get(f"/api/jobs/{job_id}").json()["ocr_warning"] is not None
 
 
-@pytest.mark.blocked
-@pytest.mark.xfail(strict=True, reason="TP-09 bloqueado: no existe endpoint de preview")
-def test_tp09_preview_is_not_implemented(client: TestClient, valid_pdf: bytes) -> None:
+def test_tp09_preview_is_not_implemented(client: TestClient, valid_pdf: bytes, db_session) -> None:
     job_id = upload(client, valid_pdf, key="preview-contract").json()["job"]["job_id"]
+    FakeWorker(LocalStorage(client.app.state.settings.storage_root)).process_next(db_session)
     assert client.get(f"/api/jobs/{job_id}/preview").status_code == 200
 
 
-@pytest.mark.blocked
-@pytest.mark.xfail(strict=True, reason="TP-10 bloqueado: no existe endpoint de descarga")
-def test_tp10_download_is_not_implemented(client: TestClient, valid_pdf: bytes) -> None:
+def test_tp10_download_is_not_implemented(client: TestClient, valid_pdf: bytes, db_session) -> None:
     job_id = upload(client, valid_pdf, key="download-contract").json()["job"]["job_id"]
+    FakeWorker(LocalStorage(client.app.state.settings.storage_root)).process_next(db_session)
     assert client.get(f"/api/jobs/{job_id}/download").status_code == 200
 
 
