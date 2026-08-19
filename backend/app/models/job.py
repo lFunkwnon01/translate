@@ -37,3 +37,5 @@ class TranslationJob(Base):
     document = relationship("Document", back_populates="jobs")
     outbox_messages = relationship("JobOutboxMessage", back_populates="job")
     events = relationship("JobEvent", back_populates="job")
+    segments = relationship("JobSegment", back_populates="job", cascade="all, delete-orphan")
+    artifacts = relationship("Artifact", back_populates="job", cascade="all, delete-orphan")

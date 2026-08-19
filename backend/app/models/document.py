@@ -22,3 +22,4 @@ class Document(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     jobs = relationship("TranslationJob", back_populates="document")
+    pages = relationship("DocumentPage", back_populates="document", cascade="all, delete-orphan")

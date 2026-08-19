@@ -41,7 +41,10 @@ def test_worker_persists_progress_events_and_artifact_endpoints(
     assert [event["status"] for event in events.json()["events"]] == [
         "queued",
         "extracting",
+        "ocr_processing",
         "translating",
+        "rebuilding",
+        "validating",
         "completed",
     ]
     assert client.get(f"/api/jobs/{job_id}/stream").headers["content-type"].startswith(
