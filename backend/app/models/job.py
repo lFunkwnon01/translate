@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -25,6 +25,8 @@ class TranslationJob(Base):
     status: Mapped[str] = mapped_column(String(40), nullable=False, default="queued", index=True)
     progress_percent: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     current_step: Mapped[str] = mapped_column(String(40), nullable=False, default="queued")
+    cancellation_requested: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    checkpoint: Mapped[str] = mapped_column(String(40), nullable=False, default="queued")
     artifact_path: Mapped[str | None] = mapped_column(String(512))
     requested_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -34,3 +36,4 @@ class TranslationJob(Base):
 
     document = relationship("Document", back_populates="jobs")
     outbox_messages = relationship("JobOutboxMessage", back_populates="job")
+    events = relationship("JobEvent", back_populates="job")

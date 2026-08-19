@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     owner_key: str = "local_owner"
     max_file_size_bytes: int = 26_214_400
     max_jobs_per_day: int = 10
+    preview_ttl_seconds: int = 300
 
     model_config = SettingsConfigDict(
         env_file=".env",
