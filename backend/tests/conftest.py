@@ -44,6 +44,75 @@ class FakeAIProvider:
         return FakeAIResult(artifact=f"%PDF-1.4\n% fake-ai:{digest}\n%%EOF\n".encode())
 
 
+def _make_simple_pdf(tmp_path: Path) -> Path:
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=12)
+    pdf.cell(text="Hello World")
+    pdf.cell(text="Second line of text")
+    path = tmp_path / "simple.pdf"
+    pdf.output(str(path))
+    return path
+
+
+def _make_scanned_pdf(tmp_path: Path) -> Path:
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=12)
+    pdf.cell(text="Visible text rendered as path, no selectable text layer")
+    path = tmp_path / "scanned.pdf"
+    pdf.output(str(path))
+    return path
+
+
+def _make_table_pdf(tmp_path: Path) -> Path:
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=10)
+    col_w = 60
+    row_h = 10
+    headers = ["Name", "Age", "City"]
+    data = [
+        ["Alice", "30", "NYC"],
+        ["Bob", "25", "LA"],
+    ]
+    for h in headers:
+        pdf.cell(w=col_w, h=row_h, border=1, text=h)
+    pdf.ln()
+    for row in data:
+        for val in row:
+            pdf.cell(w=col_w, h=row_h, border=1, text=val)
+        pdf.ln()
+    path = tmp_path / "table.pdf"
+    pdf.output(str(path))
+    return path
+
+
+def _make_multi_page_pdf(tmp_path: Path) -> Path:
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    for i in range(1, 4):
+        pdf.add_page()
+        pdf.set_font("Helvetica", size=12)
+        pdf.cell(text=f"Page {i} content")
+    path = tmp_path / "multi.pdf"
+    pdf.output(str(path))
+    return path
+
+
+def _make_invalid_pdf(tmp_path: Path) -> Path:
+    path = tmp_path / "invalid.pdf"
+    path.write_bytes(b"%PDF-1.4\nthis is not a valid pdf file at all\n%%EOF\n")
+    return path
+
+
 @pytest.fixture()
 def owner_key() -> str:
     return "test-owner"
@@ -108,3 +177,28 @@ def db_session(test_app) -> Iterator[Session]:
         yield session
     finally:
         session.close()
+
+
+@pytest.fixture
+def simple_pdf_path(tmp_path: Path) -> Path:
+    return _make_simple_pdf(tmp_path)
+
+
+@pytest.fixture
+def scanned_pdf_path(tmp_path: Path) -> Path:
+    return _make_scanned_pdf(tmp_path)
+
+
+@pytest.fixture
+def table_pdf_path(tmp_path: Path) -> Path:
+    return _make_table_pdf(tmp_path)
+
+
+@pytest.fixture
+def multi_page_pdf_path(tmp_path: Path) -> Path:
+    return _make_multi_page_pdf(tmp_path)
+
+
+@pytest.fixture
+def invalid_pdf_path(tmp_path: Path) -> Path:
+    return _make_invalid_pdf(tmp_path)
