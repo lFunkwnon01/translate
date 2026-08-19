@@ -2,10 +2,18 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
+import os
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
+_local_bin = str(Path.home() / ".local" / "bin")
+if _local_bin not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = _local_bin + os.pathsep + os.environ.get("PATH", "")
+_tessdata = str(Path.home() / ".local" / "share" / "tessdata")
+if Path(_tessdata).is_dir():
+    os.environ.setdefault("TESSDATA_PREFIX", _tessdata)
 
 from app.core.config import Settings
 from app.db.base import Base
