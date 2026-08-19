@@ -1,7 +1,7 @@
 # Ola 2 - Checklist de integracion
 
-Agente: D  
-Base: `00eb55b` (`main`)  
+Agente: D
+Base: `00eb55b` (`main`)
 Worktree: `wt-wave2-integration`
 
 Este documento es operativo para integrar OL2-A1..A4 y OL2-C1..C2. No sustituye
