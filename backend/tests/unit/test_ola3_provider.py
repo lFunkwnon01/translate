@@ -18,6 +18,6 @@ def test_fake_ai_provider_exposes_stable_errors(
     with pytest.raises(RuntimeError) as raised:
         provider.translate(valid_pdf, "en", "es")
 
-    assert getattr(raised.value, "code") == error
+    assert raised.value.code == error
     assert len(provider.calls) == 1
     assert provider.calls[0][1:] == ("en", "es")
