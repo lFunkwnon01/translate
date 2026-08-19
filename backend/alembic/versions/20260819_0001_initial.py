@@ -40,6 +40,9 @@ def upgrade() -> None:
         sa.Column("requested_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column("started_at", sa.DateTime(timezone=True)),
         sa.Column("finished_at", sa.DateTime(timezone=True)),
+        sa.UniqueConstraint(
+            "owner_key", "idempotency_key", name="uq_translation_job_owner_idempotency"
+        ),
     )
     op.create_index("ix_translation_jobs_document_id", "translation_jobs", ["document_id"])
     op.create_index("ix_translation_jobs_owner_key", "translation_jobs", ["owner_key"])

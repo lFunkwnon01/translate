@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -9,6 +9,11 @@ from app.db.base import Base
 
 class TranslationJob(Base):
     __tablename__ = "translation_jobs"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_key", "idempotency_key", name="uq_translation_job_owner_idempotency"
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
     document_id: Mapped[str] = mapped_column(ForeignKey("documents.id"), nullable=False, index=True)

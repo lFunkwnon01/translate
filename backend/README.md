@@ -21,7 +21,7 @@ curl http://localhost:8000/health
 curl http://localhost:8000/api/v1/health
 ```
 
-`/health` remains available for existing probes. New API routes should be added under `/api/v1`.
+`/health` remains available for existing probes. The canonical API route is `/api/...`; `/api/v1/...` is a temporary versioned alias for compatibility and should not be used for new route references.
 
 ## Ola 2 backend foundation
 
