@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.db.session import get_db
+from app.jobs.events import record_event
 from app.models import Document, JobOutboxMessage, TranslationJob
 from app.storage.local import LocalStorage
 
@@ -123,6 +124,7 @@ async def upload_document(
     db.add_all([document, job])
     db.flush()
     db.add(JobOutboxMessage(job_id=job.id, payload=json.dumps({"job_id": job.id})))
+    record_event(db, job, "job.queued")
     db.commit()
     return _response(document, job)
 

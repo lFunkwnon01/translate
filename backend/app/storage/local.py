@@ -27,3 +27,10 @@ class LocalStorage:
         path.write_bytes(content)
         os.chmod(path, 0o600)
         return str(path)
+
+    def artifact_path(self, owner_key: str, job_id: str, stored_path: str) -> Path:
+        owner_dir = self.root / hashlib.sha256(owner_key.encode()).hexdigest()
+        candidate = Path(stored_path).resolve()
+        if candidate.parent != (owner_dir / job_id).resolve() or candidate.name != "translated.pdf":
+            raise ValueError("artifact path is outside the owner sandbox")
+        return candidate
