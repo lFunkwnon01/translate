@@ -14,7 +14,7 @@ from app.models import DocumentBlock, DocumentPage, JobOutboxMessage, Translatio
 from app.pdf.extraction import extract_document, extract_page_blocks, extract_page_text
 from app.pdf.ocr import is_ocr_available
 from app.pdf.reconstruction import reconstruct_pdf
-from app.providers.ai import AIProvider, AIProviderError, FakeAIProvider, create_provider
+from app.providers.ai import AIProvider, AIProviderError, FakeAIProvider
 from app.storage.local import LocalStorage
 
 FAKE_ARTIFACT = FakeAIProvider().translate(b"", "auto", "")

@@ -7,7 +7,6 @@ import pytest
 
 from app.pdf.extraction import extract_document
 from app.pdf.ocr import OCRBINARIES_NOT_AVAILABLE, is_ocr_available
-from app.pdf.reconstruction import reconstruct_pdf
 from app.pdf.segmentation import create_segments
 from app.validation.pdf_validator import validate_pdf
 
