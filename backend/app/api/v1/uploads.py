@@ -1,3 +1,4 @@
+import hashlib
 import json
 from typing import Annotated
 from uuid import uuid4
@@ -33,6 +34,16 @@ def api_error(
     )
 
 
+def request_hash(content: bytes, source_language_code: str, target_language_code: str) -> str:
+    digest = hashlib.sha256()
+    digest.update(content)
+    digest.update(b"\0")
+    digest.update(source_language_code.encode("utf-8"))
+    digest.update(b"\0")
+    digest.update(target_language_code.encode("utf-8"))
+    return digest.hexdigest()
+
+
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
     request: Request,
@@ -56,18 +67,6 @@ async def upload_document(
     if target_language_code not in SUPPORTED_LANGUAGES:
         raise api_error("UNSUPPORTED_LANGUAGE", "Idioma destino no soportado.", 422)
 
-    owner_key = settings.owner_key
-    existing = db.scalar(
-        select(TranslationJob).where(
-            TranslationJob.owner_key == owner_key, TranslationJob.idempotency_key == idempotency_key
-        )
-    )
-    if existing:
-        document = db.get(Document, existing.document_id)
-        if document is None:
-            raise api_error("STORAGE_ERROR", "No se encontro el documento del trabajo.", 500)
-        return _response(document, existing)
-
     content = await file.read(settings.max_file_size_bytes + 1)
     if len(content) > settings.max_file_size_bytes:
         raise api_error(
@@ -82,6 +81,24 @@ async def upload_document(
         )
     if not content.startswith(b"%PDF-") or b"%%EOF" not in content[-1024:]:
         raise api_error("INVALID_PDF", "El archivo no es un PDF valido.", 422)
+    owner_key = settings.owner_key
+    calculated_request_hash = request_hash(content, source_language_code, target_language_code)
+    existing = db.scalar(
+        select(TranslationJob).where(
+            TranslationJob.owner_key == owner_key, TranslationJob.idempotency_key == idempotency_key
+        )
+    )
+    if existing:
+        document = db.get(Document, existing.document_id)
+        if document is None:
+            raise api_error("STORAGE_ERROR", "No se encontro el documento del trabajo.", 500)
+        if existing.request_hash != calculated_request_hash:
+            raise api_error(
+                "IDEMPOTENCY_KEY_CONFLICT",
+                "La clave de idempotencia ya fue usada con otra solicitud.",
+                409,
+            )
+        return _response(document, existing)
 
     document_id = str(uuid4())
     storage = LocalStorage(settings.storage_root)
@@ -99,6 +116,7 @@ async def upload_document(
         document_id=document_id,
         owner_key=owner_key,
         idempotency_key=idempotency_key,
+        request_hash=calculated_request_hash,
         source_language_code=source_language_code,
         target_language_code=target_language_code,
     )

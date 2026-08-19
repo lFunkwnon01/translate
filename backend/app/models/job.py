@@ -19,6 +19,7 @@ class TranslationJob(Base):
     document_id: Mapped[str] = mapped_column(ForeignKey("documents.id"), nullable=False, index=True)
     owner_key: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     source_language_code: Mapped[str] = mapped_column(String(16), nullable=False, default="auto")
     target_language_code: Mapped[str] = mapped_column(String(16), nullable=False)
     status: Mapped[str] = mapped_column(String(40), nullable=False, default="queued", index=True)

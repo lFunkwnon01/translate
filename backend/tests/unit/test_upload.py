@@ -57,10 +57,6 @@ def test_upload_repeating_same_key_and_payload_returns_same_response(
     assert first.json() == second.json()
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="backend currently replays any payload for an existing Idempotency-Key",
-)
 def test_upload_reusing_key_with_different_payload_is_conflict(
     client: TestClient, valid_pdf: bytes
 ) -> None:
@@ -99,7 +95,9 @@ def test_upload_rejects_invalid_pdf_signature(client: TestClient, corrupt_pdf: b
     assert response.json()["detail"]["error"]["code"] == "INVALID_PDF"
 
 
-def test_upload_rejects_file_over_configured_limit(client: TestClient, valid_pdf: bytes, settings) -> None:
+def test_upload_rejects_file_over_configured_limit(
+    client: TestClient, valid_pdf: bytes, settings
+) -> None:
     oversized = b"%PDF-1.4\n" + b"x" * settings.max_file_size_bytes + b"\n%%EOF\n"
 
     response = upload(client, oversized)

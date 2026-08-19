@@ -31,6 +31,7 @@ def upgrade() -> None:
         sa.Column("document_id", sa.String(36), sa.ForeignKey("documents.id"), nullable=False),
         sa.Column("owner_key", sa.String(128), nullable=False),
         sa.Column("idempotency_key", sa.String(128), nullable=False),
+        sa.Column("request_hash", sa.String(64), nullable=False),
         sa.Column("source_language_code", sa.String(16), nullable=False),
         sa.Column("target_language_code", sa.String(16), nullable=False),
         sa.Column("status", sa.String(40), nullable=False),
