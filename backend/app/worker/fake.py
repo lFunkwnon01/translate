@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -17,8 +17,12 @@ class FakeWorker:
         self.worker_id = worker_id
 
     def process_next(self, db: Session) -> TranslationJob | None:
-        message = db.scalar(select(JobOutboxMessage).where(JobOutboxMessage.status == "pending")
-                             .order_by(JobOutboxMessage.created_at).limit(1))
+        message = db.scalar(
+            select(JobOutboxMessage)
+            .where(JobOutboxMessage.status == "pending")
+            .order_by(JobOutboxMessage.created_at)
+            .limit(1)
+        )
         if not message:
             return None
         job = db.get(TranslationJob, message.job_id)
@@ -41,7 +45,7 @@ class FakeWorker:
         job.status = "completed"
         job.current_step = "completed"
         job.progress_percent = 100
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         job.started_at = job.started_at or now
         job.finished_at = now
         db.commit()

@@ -1,6 +1,8 @@
 """create documents, translation jobs and outbox"""
-from alembic import op
+
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "20260819_0001"
 down_revision = None

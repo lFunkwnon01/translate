@@ -1,8 +1,8 @@
 from collections.abc import Generator
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from pathlib import Path
 
 from app.core.config import Settings
 
@@ -11,7 +11,9 @@ def build_engine(settings: Settings):
     if settings.database_url.startswith("sqlite:///"):
         database_path = settings.database_url.removeprefix("sqlite:///")
         Path(database_path).parent.mkdir(parents=True, exist_ok=True)
-    connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+    connect_args = (
+        {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+    )
     return create_engine(settings.database_url, connect_args=connect_args)
 
 
