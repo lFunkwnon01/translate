@@ -1,5 +1,10 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from app.core.config import Settings
 
 
 class AIProviderError(RuntimeError):
@@ -23,3 +28,18 @@ class FakeAIProvider:
         if self.fail or self.fail_on == "translate":
             raise AIProviderError(self.error_message)
         return b"%PDF-1.4\n% Fake translated artifact\n1 0 obj\n<<>>\nendobj\n%%EOF\n"
+
+
+def create_provider(settings: Settings) -> AIProvider:
+    """Create the appropriate AI provider based on settings."""
+    if settings.ai_provider == "oracle":
+        from app.providers.oracle import OracleAIProvider
+
+        return OracleAIProvider(
+            config_path=settings.oracle_config_path,
+            config_profile=settings.oracle_config_profile,
+            endpoint=settings.oracle_endpoint,
+            model_id=settings.oracle_model_id,
+            compartment_id=settings.oracle_compartment_id,
+        )
+    return FakeAIProvider()
