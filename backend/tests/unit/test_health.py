@@ -13,12 +13,8 @@ def test_health_returns_ok(client: TestClient) -> None:
     assert payload["service"] == "doctranslate-api"
     assert payload["version"] == "0.1.0"
     assert response.headers["content-type"].startswith("application/json")
-    assert payload["checks"] == {
-        "database": "not_checked",
-        "storage": "not_checked",
-        "queue": "not_checked",
-        "ai_provider": "not_configured",
-    }
+    assert set(payload) == {"status", "service", "version", "checks", "timestamp"}
+    assert payload["checks"] == {"api": "ok"}
     assert datetime.fromisoformat(payload["timestamp"])
 
 

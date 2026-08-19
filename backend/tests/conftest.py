@@ -6,8 +6,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
+from app.db.base import Base
 from app.db.session import get_db
 from app.main import create_app
+from app.models import Document, JobOutboxMessage, TranslationJob  # noqa: F401
 
 VALID_PDF = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n"
 CORRUPT_PDF = b"%PDF-1.4\nnot-a-complete-pdf\n"
@@ -40,6 +42,8 @@ def settings(tmp_path: Path, owner_key: str) -> Settings:
 @pytest.fixture()
 def test_app(settings: Settings):
     application = create_app(settings)
+    # Runtime schema changes are owned by Alembic; tests create only their isolated schema.
+    Base.metadata.create_all(application.state.session_factory.kw["bind"])
 
     def test_db():
         session = application.state.session_factory()

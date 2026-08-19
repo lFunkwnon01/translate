@@ -9,10 +9,12 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-uvicorn app.main:app --reload --port 8000
+set -a; [ ! -f .env ] || source .env; set +a
+alembic upgrade head
+uvicorn app.main:app --reload --host "${APP_HOST:-127.0.0.1}" --port "${APP_PORT:-8000}"
 ```
 
-The application reads `APP_ENV`, `APP_HOST` and `APP_PORT` from the environment or a local `backend/.env` file. Unknown environment variables are ignored so later infrastructure settings can be introduced without breaking startup. Do not commit `.env` files or credentials.
+Copy `.env.example` to `.env` before starting if you want local values. The application reads `APP_ENV`, `APP_HOST` and `APP_PORT` from the environment (or from `backend/.env` when settings are loaded). The shell command above passes the configured host and port to Uvicorn; its defaults are `127.0.0.1` and `8000`. Unknown environment variables are ignored so later infrastructure settings can be introduced without breaking startup. Do not commit `.env` files or credentials.
 
 Health checks:
 
@@ -23,9 +25,11 @@ curl http://localhost:8000/api/v1/health
 
 `/health` remains available for existing probes. The canonical API route is `/api/...`; `/api/v1/...` is a temporary versioned alias for compatibility and should not be used for new route references.
 
+The public health payload is intentionally limited to the API check and does not expose database, storage, queue, or provider readiness details. If operational readiness checks are added later, keep them internal to deployment/runtime diagnostics rather than extending this public contract.
+
 ## Ola 2 backend foundation
 
-The local MVP now persists `documents`, `translation_jobs` and `job_outbox_messages` in SQLite. Run the initial migration with:
+The local MVP now persists `documents`, `translation_jobs` and `job_outbox_messages` in SQLite. Alembic is the only runtime/dev schema owner; the application never calls SQLAlchemy `create_all`. Run migrations explicitly before starting the service:
 
 ```bash
 alembic upgrade head
