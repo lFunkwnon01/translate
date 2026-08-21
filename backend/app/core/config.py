@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     ai_provider: str = "fake"  # "fake" or "oracle"
     oracle_config_path: str = "~/.oci/config"
     oracle_config_profile: str = "ADMIN"
-    oracle_endpoint: str = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
-    oracle_model_id: str = "ocid1.generativeaimodel.oc1.us-chicago-1.amaaaaaask7dceyapnibwg42qjhwaxrlqfpreueirtwghiwvv2whsnwmnlva"
+    oracle_endpoint: str = ""
+    oracle_model_id: str = ""
     oracle_compartment_id: str | None = None
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
